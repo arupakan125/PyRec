@@ -8,35 +8,9 @@ from django.utils import timezone
 from django.utils.dateformat import format
 from django.utils.translation import gettext_lazy as _
 
-from .models import AudioInfo, Genre, Program, RelatedItem, VideoInfo
-
+from .models import Program
 
 # Register your models here.
-@admin.register(VideoInfo)
-class VideoInfoAdmin(admin.ModelAdmin):
-    list_display = ('video_type', 'resolution',
-                    'stream_content', 'component_type')
-    search_fields = ('video_type', 'resolution')
-
-
-@admin.register(AudioInfo)
-class AudioInfoAdmin(admin.ModelAdmin):
-    list_display = ('component_type', 'component_tag',
-                    'is_main', 'sampling_rate')
-    search_fields = ('component_type', 'languages')
-
-
-@admin.register(Genre)
-class GenreAdmin(admin.ModelAdmin):
-    list_display = ('level1', 'level2', 'user_nibble1', 'user_nibble2')
-    list_filter = ('level1', 'level2')
-    search_fields = ('user_nibble1', 'user_nibble2')
-
-
-@admin.register(RelatedItem)
-class RelatedItemAdmin(admin.ModelAdmin):
-    list_display = ('item_type', 'network_id', 'service_id', 'event_id')
-    search_fields = ('item_type', 'network_id', 'service_id', 'event_id')
 
 
 class IsAiringFilter(admin.SimpleListFilter):
@@ -103,7 +77,6 @@ class ProgramAdmin(admin.ModelAdmin):
             'fields': ('video_info', 'audio_infos', 'genres', 'related_items')
         }),
     )
-    filter_horizontal = ('audio_infos', 'genres', 'related_items')
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)

@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 import pytz
-from guide.models import AudioInfo, Genre, Program, RelatedItem, VideoInfo
+from guide.models import Program
 
 
 def apply_functions_to_dict(data, functions):
@@ -114,56 +114,6 @@ def create_or_update_program(data):
             # 一致するsharedアイテムが存在しない場合はプログラムを無視
             return None, False
 
-    # VideoInfoの作成または取得
-    video_info_data = data.get('video', None)
-    if video_info_data:
-        video_info, _ = VideoInfo.objects.get_or_create(
-            video_type=video_info_data.get('type', None),
-            resolution=video_info_data.get('resolution', None),
-            stream_content=video_info_data.get('streamContent', None),
-            component_type=video_info_data.get('componentType', None)
-        )
-    else:
-        video_info = None
-
-    # AudioInfoの作成または取得
-    audio_infos = []
-    for audio_data in data.get('audios', []):
-        audio_info, _ = AudioInfo.objects.get_or_create(
-            component_type=audio_data.get('componentType', None),
-            component_tag=audio_data.get('componentTag', None),
-            is_main=audio_data.get('isMain', None),
-            sampling_rate=audio_data.get('samplingRate', None),
-            languages=audio_data.get('langs', None)
-        )
-        audio_infos.append(audio_info)
-    # Genreの作成または取得
-    genres = []
-    for genre_data in data.get('genres', []):
-        genre, _ = Genre.objects.get_or_create(
-            level1=genre_data.get('lv1', None),
-            level2=genre_data.get('lv2', None),
-            user_nibble1=genre_data.get('un1', None),
-            user_nibble2=genre_data.get('un2', None)
-        )
-        genres.append(genre)
-
-    # RelatedItemの作成または取得
-    related_items = []
-    try:
-        for related_item_data in data.get('relatedItems', []):
-            related_item, _ = RelatedItem.objects.get_or_create(
-                item_type=related_item_data.get('type', None),
-                service_id=related_item_data.get('serviceId', None),
-                event_id=related_item_data.get('eventId', None),
-                network_id=related_item_data.get(
-                    'networkId', None)  # デフォルトでNoneを設定
-            )
-            related_items.append(related_item)
-    except Exception as e:
-        print(related_item_data)
-        raise e
-
     # Programの作成または更新
     start_at_timestamp = data.get('startAt') / 1000
     tokyo_tz = pytz.timezone('Asia/Tokyo')
@@ -193,16 +143,14 @@ def create_or_update_program(data):
             'duration': timedelta(milliseconds=data.get('duration')),
             'is_free': data.get('isFree'),
             'extended_info': extended_info,
+            'genres': data.get('genres', []),
+            'audio_infos': data.get('audios', []),
+            'related_items': data.get('relatedItems', []),
             'title': title,
             'description': description,
-            'video_info': video_info,
+            'video_info': data.get('video', {}),
             'pf_flag': data.get('_pf', False)
         }
     )
-
-    # ManyToManyフィールドの設定
-    program.audio_infos.set(audio_infos)
-    program.genres.set(genres)
-    program.related_items.set(related_items)
 
     return program, created

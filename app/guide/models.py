@@ -1,6 +1,7 @@
-from django.db import models
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
+
 import pytz
+from django.db import models
 
 # Create your models here.
 
@@ -24,6 +25,7 @@ class GenreLevel1(models.IntegerChoices):
     RESERVED_2 = 0xD, '予備'
     EXTENSION = 0xE, '拡張'
     OTHERS = 0xF, 'その他'
+
 
 class GenreLevel2(models.IntegerChoices):
     # ニュース/報道
@@ -137,10 +139,12 @@ class GenreLevel2(models.IntegerChoices):
     # その他
     OTHER = 0xFF, 'その他'
 
+
 class VideoType(models.TextChoices):
     MPEG2 = 'mpeg2', 'MPEG-2'
     H264 = 'h.264', 'H.264'
     H265 = 'h.265', 'H.265'
+
 
 class VideoResolution(models.TextChoices):
     P240 = '240p', '240p'
@@ -152,6 +156,7 @@ class VideoResolution(models.TextChoices):
     P2160 = '2160p', '2160p'
     P4320 = '4320p', '4320p'
 
+
 class AudioSamplingRate(models.IntegerChoices):
     RATE_16000 = 16000, '16 kHz'
     RATE_22050 = 22050, '22.05 kHz'
@@ -159,6 +164,7 @@ class AudioSamplingRate(models.IntegerChoices):
     RATE_32000 = 32000, '32 kHz'
     RATE_44100 = 44100, '44.1 kHz'
     RATE_48000 = 48000, '48 kHz'
+
 
 class AudioComponentType(models.IntegerChoices):
     RESERVED = 0b00000, '将来使用のためリザーブ'
@@ -182,10 +188,12 @@ class AudioComponentType(models.IntegerChoices):
     RESERVED_2 = 0b10010, '将来使用のためリザーブ'
     RESERVED_3 = 0b11111, '将来使用のためリザーブ'
 
+
 class RelatedItemType(models.TextChoices):
     SHARED = 'shared', 'Shared'
     RELAY = 'relay', 'Relay'
     MOVEMENT = 'movement', 'Movement'
+
 
 class LanguageChoices(models.TextChoices):
     JPN = 'jpn', 'Japanese'
@@ -199,47 +207,6 @@ class LanguageChoices(models.TextChoices):
     SPA = 'spa', 'Spanish'
     ETC = 'etc', 'Other'
 
-class VideoInfo(models.Model):
-    video_type = models.CharField(max_length=50, choices=VideoType.choices)
-    resolution = models.CharField(max_length=50, choices=VideoResolution.choices)
-    stream_content = models.IntegerField()
-    component_type = models.IntegerField()
-
-    def __str__(self):
-        return f"Video Info: {self.video_type} {self.resolution}"
-
-class AudioInfo(models.Model):
-    component_type = models.IntegerField(choices=AudioComponentType.choices)
-    component_tag = models.IntegerField()
-    is_main = models.BooleanField()
-    sampling_rate = models.IntegerField(choices=AudioSamplingRate.choices)
-    languages = models.JSONField()
-
-    def __str__(self):
-        return f"Audio Info: {self.get_component_type_display()} {self.is_main}"
-
-class Genre(models.Model):
-    level1 = models.IntegerField(choices=GenreLevel1.choices)
-    level2 = models.IntegerField(choices=GenreLevel2.choices)
-    user_nibble1 = models.IntegerField()
-    user_nibble2 = models.IntegerField()
-
-    def __str__(self):
-        return f"Genre: {self.get_level1_display()} - {self.get_level2_display()}"
-
-class RelatedItem(models.Model):
-    item_type = models.CharField(max_length=50, choices=RelatedItemType.choices, blank=True, null=True)
-    network_id = models.IntegerField(blank=True, null=True)
-    service_id = models.IntegerField(blank=True, null=True)
-    event_id = models.IntegerField(blank=True, null=True)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=['item_type', 'network_id', 'service_id', 'event_id'], name='unique_related_item')
-        ]
-
-    def __str__(self):
-        return f"Related Item: {self.item_type} NID: {self.network_id}  SID: {self.service_id} EID: {self.event_id}" 
 
 class Program(models.Model):
     program_id = models.BigIntegerField(unique=True)
@@ -252,16 +219,16 @@ class Program(models.Model):
     extended_info = models.JSONField(blank=True, null=True)
     title = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
-    video_info = models.ForeignKey(VideoInfo, on_delete=models.CASCADE, blank=True, null=True)
-    audio_infos = models.ManyToManyField(AudioInfo, blank=True)
-    genres = models.ManyToManyField(Genre, blank=True)
-    related_items = models.ManyToManyField(RelatedItem, blank=True)
+    video_info = models.JSONField(blank=True, null=True)
+    audio_infos = models.JSONField(blank=True, null=True)
+    genres = models.JSONField(blank=True, null=True)
+    related_items = models.JSONField(blank=True, null=True)
     pf_flag = models.BooleanField(blank=True, null=True)
 
     @property
     def end_at(self):
         return self.start_at + self.duration
-    
+
     @property
     def is_airing(self):
         now = datetime.now(pytz.timezone('Asia/Tokyo'))
