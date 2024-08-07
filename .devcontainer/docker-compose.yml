@@ -1,0 +1,22 @@
+services:
+  devcontainer:
+    image: mcr.microsoft.com/devcontainers/python:1-3.12-bookworm
+    environment:
+      TZ: 'Asia/Tokyo'
+    volumes:
+      - ../..:/workspaces:cached
+      - ../cache:/cache:cached
+    command: sleep infinity
+  db:
+    image: mariadb
+    environment:
+      MARIADB_ROOT_PASSWORD: password
+      MARIADB_DATABASE: pyrec
+      MARIADB_USER: pyrec
+      MARIADB_PASSWORD: password
+      TZ: 'Asia/Tokyo'
+    volumes:
+      - ./db/data:/var/lib/mysql
+    # command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+  redis:
+    image: redis

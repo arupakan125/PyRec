@@ -1,0 +1,8 @@
+.DS_Store
+__pycache__
+db.sqlite3
+.devcontainer/db
+
+app/media/*
+media/*
+db/*

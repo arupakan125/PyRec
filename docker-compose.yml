@@ -1,0 +1,40 @@
+services:
+  app:
+    build: .
+    restart: always
+    ports:
+      - 3000:8000
+    environment:
+      - TZ=Asia/Tokyo
+    volumes:
+      - ./media:/app/media
+  db:
+    image: mariadb:latest
+    restart: always
+    environment:
+      TZ: 'Asia/Tokyo'
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: pyrec
+      MYSQL_USER: pyrec
+      MYSQL_PASSWORD: password
+    volumes:
+      - ./db:/var/lib/mysql
+  redis:
+    image: redis:latest
+    restart: always
+    environment:
+      TZ: 'Asia/Tokyo'
+  celery-worker:
+    build: .
+    command: celery -A pyrec worker -l info
+    restart: always
+    environment:
+      TZ: 'Asia/Tokyo'
+    volumes:
+      - ./media:/app/media
+  celery-beat:
+    build: .
+    command: celery -A pyrec beat -l info
+    restart: always
+    environment:
+      TZ: 'Asia/Tokyo'
