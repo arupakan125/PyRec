@@ -284,7 +284,7 @@ def encode():
 
         # 関数を呼び出す
         input_file = os.path.join(settings.MEDIA_ROOT, task.recorded.file.path)
-        output_file = os.path.join(settings.MEDIA_ROOT, task.file.path)
+        output_file = os.path.join(settings.ENCODED_ROOT, task.file.path)
         try:
             # 動的にモジュールをインポート
             module_name = os.path.splitext(os.path.basename(file_path))[0]
