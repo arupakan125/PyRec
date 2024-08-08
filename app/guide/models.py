@@ -233,6 +233,8 @@ class Program(models.Model):
 
     @property
     def is_airing(self):
+        if self.is_removed:
+            return False
         now = datetime.now(pytz.timezone("Asia/Tokyo"))
         end_time = self.start_at + self.duration
         return self.start_at <= now < end_time
