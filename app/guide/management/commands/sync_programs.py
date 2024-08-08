@@ -60,6 +60,8 @@ class Command(BaseCommand):
         for program_id in programs_to_delete:
             try:
                 program = Program.objects.get(program_id=program_id)
+                if program.is_removed:
+                    continue
                 try:
                     program.delete()
                     self.stdout.write(self.style.SUCCESS(f'Successfully deleted program with ID {program_id}'))
