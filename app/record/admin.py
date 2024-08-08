@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Recorded, RecordRule
+from .models import EncodeTask, Recorded, RecordRule
 
 # Register your models here.
 
@@ -60,5 +60,40 @@ class RecordedAdmin(admin.ModelAdmin):
     )
 
 
+class EncodeTaskAdmin(admin.ModelAdmin):
+    list_display = (
+        "recorded",
+        "file",
+        "encoder_path",
+        "is_executed",
+        "started_at",
+        "ended_at",
+    )
+    list_filter = ("is_executed", "started_at", "ended_at")
+    search_fields = (
+        "recorded__name",
+        "encoder_path",
+    )
+    readonly_fields = ("started_at", "ended_at", "error_message")
+    ordering = ("-started_at",)
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "recorded",
+                    "file",
+                    "encoder_path",
+                    "encoding_path",
+                    "is_executed",
+                )
+            },
+        ),
+        ("Timestamps", {"fields": ("started_at", "ended_at")}),
+        ("Errors", {"fields": ("error_message",)}),
+    )
+
+
+admin.site.register(EncodeTask, EncodeTaskAdmin)
 admin.site.register(RecordRule, RecordRuleAdmin)
 admin.site.register(Recorded, RecordedAdmin)
