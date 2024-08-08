@@ -1,22 +1,23 @@
-import requests
 import signal
+
+import requests
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from guide.utils import create_or_update_program
 
+
 class Command(BaseCommand):
-    help = 'Load program data from API'
+    help = "Load program data from API"
 
     def handle(self, *args, **kwargs):
         self.shutdown_flag = False
-    
+
         def signal_handler(signum, frame):
             self.shutdown_flag = True
-            self.stdout.write(self.style.WARNING('Shutting down...'))
+            self.stdout.write(self.style.WARNING("Shutting down..."))
 
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)
-
 
         # APIからデータを取得
         api_url = f"{settings.MIRAKURUN_API}/programs"
@@ -38,4 +39,4 @@ class Command(BaseCommand):
                 if self.shutdown_flag:
                     break
         else:
-            self.stdout.write(self.style.ERROR('Failed to retrieve data from API'))
+            self.stdout.write(self.style.ERROR("Failed to retrieve data from API"))

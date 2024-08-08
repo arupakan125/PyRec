@@ -10,8 +10,8 @@ class RecordRule(models.Model):
 
 
 class Recorded(models.Model):
-    program = models.ForeignKey('guide.Program', on_delete=models.PROTECT)
-    file = models.FileField(upload_to='recorded/')
+    program = models.ForeignKey("guide.Program", on_delete=models.PROTECT)
+    file = models.FileField(upload_to="recorded/")
     started_at = models.DateTimeField()
     last_updated_at = models.DateTimeField()
     ended_at = models.DateTimeField(null=True, blank=True)

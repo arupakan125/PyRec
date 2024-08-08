@@ -25,8 +25,11 @@ def get_service_id(program):
         services = response.json()
         # 対応するserviceIdを持つサービスを検索
         for service in services:
-            if service['serviceId'] == program.service_id and service['networkId'] == program.network_id:
-                return service['id']
+            if (
+                service["serviceId"] == program.service_id
+                and service["networkId"] == program.network_id
+            ):
+                return service["id"]
     except requests.exceptions.RequestException as e:
         raise Exception(f"Failed to retrieve service ID: {e}")
 
@@ -35,16 +38,18 @@ def get_service_id(program):
 
 def generate_unique_filename(directory, base_name, extension, date):
     # Base name を安全な形式に変換
-    safe_base_name = re.sub(r'[^\w\s-]', '', base_name).strip().replace(' ', '_')
-    
+    safe_base_name = re.sub(r"[^\w\s-]", "", base_name).strip().replace(" ", "_")
+
     # 日付を指定のタイムゾーンに変換
-    date = date.astimezone(pytz.timezone('Asia/Tokyo'))
-    
+    date = date.astimezone(pytz.timezone("Asia/Tokyo"))
+
     # 初回のファイル名生成
-    filename = f"{date.strftime('%Y年%m月%d日%H時%M分%S秒')}-{safe_base_name}.{extension}"
+    filename = (
+        f"{date.strftime('%Y年%m月%d日%H時%M分%S秒')}-{safe_base_name}.{extension}"
+    )
     django_path = os.path.join(directory, filename)
     full_path = os.path.join(settings.MEDIA_ROOT, django_path)
-    
+
     # 重複チェック用のカウンタ
     counter = 1
 
@@ -76,13 +81,16 @@ def create_recording_task(program_id):
 
     # 録画プロセスのチェック
     recent_time = timezone.now() - timedelta(seconds=10)
-    if Recorded.objects.filter(program=program, last_updated_at__gte=recent_time).exists():
+    if Recorded.objects.filter(
+        program=program, last_updated_at__gte=recent_time
+    ).exists():
         # print(f"Recording process for program {program.title} is already running.")
         return
 
     # 録画ファイルのパスを設定
     file_path = generate_unique_filename(
-        settings.RECORDED_PATH, program.title, "ts", program.start_at)
+        settings.RECORDED_PATH, program.title, "ts", program.start_at
+    )
 
     # 録画オブジェクトを作成
     recorded = Recorded.objects.create(
@@ -90,7 +98,7 @@ def create_recording_task(program_id):
         file=file_path,
         started_at=timezone.now(),
         last_updated_at=timezone.now(),
-        is_recording=False
+        is_recording=False,
     )
 
     record_program.delay(recorded.id)
@@ -233,7 +241,7 @@ def record_program(recorded_id):
         return f"Failed to start recording of program {program.title}: {e}"
 
     try:
-        with open(file_path, 'wb') as file:
+        with open(file_path, "wb") as file:
             update_interval = timedelta(seconds=1)
             next_update_time = timezone.now() + update_interval
             end_time = program.end_at + timedelta(seconds=3)
@@ -274,14 +282,12 @@ def record_program(recorded_id):
                 if current_time >= next_update_time:
                     recorded.last_updated_at = current_time
                     recorded.is_recording = True
-                    recorded.save(
-                        update_fields=['last_updated_at', 'is_recording'])
+                    recorded.save(update_fields=["last_updated_at", "is_recording"])
                     next_update_time = current_time + update_interval
 
             recorded.ended_at = timezone.now()
             recorded.is_recording = False
-            recorded.save(
-                update_fields=['ended_at', 'is_recording', 'last_updated_at'])
+            recorded.save(update_fields=["ended_at", "is_recording", "last_updated_at"])
 
             if interrupted:
                 return f"Recording of program {program.title} interrupted and stopped due to shutdown signal."
@@ -292,32 +298,29 @@ def record_program(recorded_id):
     except Exception as e:
         recorded.ended_at = timezone.now()
         recorded.is_recording = False
-        recorded.save(update_fields=['ended_at',
-                      'is_recording', 'last_updated_at'])
+        recorded.save(update_fields=["ended_at", "is_recording", "last_updated_at"])
         return f"An error occurred during recording of program {program.title}: {e}"
 
 
-@shared_task(base=QueueOnce, once={'graceful': True})
+@shared_task(base=QueueOnce, once={"graceful": True})
 def start_recording_based_on_rules():
     now = timezone.now()
 
     # 現在時刻から5秒以内に開始し、終了していないプログラムを取得
     upcoming_programs = Program.objects.annotate(
         calculated_end_at=ExpressionWrapper(
-            F('start_at') + F('duration'), output_field=DateTimeField())
-    ).filter(
-        start_at__lte=now + timedelta(seconds=5),
-        calculated_end_at__gt=now
-    )
+            F("start_at") + F("duration"), output_field=DateTimeField()
+        )
+    ).filter(start_at__lte=now + timedelta(seconds=5), calculated_end_at__gt=now)
 
     for program in upcoming_programs:
         for rule in RecordRule.objects.filter(is_enable=True):
             conditions = Q()
             if rule.keyword:
                 conditions &= (
-                    Q(title__icontains=rule.keyword) |
-                    Q(description__icontains=rule.keyword) |
-                    Q(extended_info__icontains=rule.keyword)
+                    Q(title__icontains=rule.keyword)
+                    | Q(description__icontains=rule.keyword)
+                    | Q(extended_info__icontains=rule.keyword)
                 )
             if rule.service_id:
                 conditions &= Q(service_id=rule.service_id)
@@ -327,7 +330,10 @@ def start_recording_based_on_rules():
             # print(f"Conditions: {conditions}")
 
             # すべての条件が空の場合はすべてのプログラムを録画対象とする
-            if conditions == Q() or Program.objects.filter(id=program.id).filter(conditions).exists():
+            if (
+                conditions == Q()
+                or Program.objects.filter(id=program.id).filter(conditions).exists()
+            ):
                 # print(f"Recording program {program.id} based on rule {rule.id}")
                 create_recording_task(program.id)
                 break  # マッチするルールが見つかったら次のプログラムへ
