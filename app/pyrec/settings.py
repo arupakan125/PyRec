@@ -196,3 +196,4 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = "media/"
 
 RECORDED_PATH = "recorded"
+ENCODED_PATH = "encoded"
