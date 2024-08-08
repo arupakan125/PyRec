@@ -224,6 +224,7 @@ class Program(models.Model):
     genres = models.JSONField(blank=True, null=True)
     related_items = models.JSONField(blank=True, null=True)
     pf_flag = models.BooleanField(blank=True, null=True)
+    is_removed = models.BooleanField(default=False)
 
     @property
     def end_at(self):

@@ -64,6 +64,8 @@ class Command(BaseCommand):
                     program.delete()
                     self.stdout.write(self.style.SUCCESS(f'Successfully deleted program with ID {program_id}'))
                 except ProtectedError:
+                    program.is_removed = True
+                    program.save()
                     self.stdout.write(self.style.WARNING(f'Cannot delete program with ID {program_id} because it is referenced by a protected foreign key'))
             except Program.DoesNotExist:
                 self.stdout.write(self.style.ERROR(f'Program with ID {program_id} does not exist'))

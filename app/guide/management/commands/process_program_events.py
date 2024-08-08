@@ -4,6 +4,7 @@ import signal
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from guide.utils import create_or_update_program
+from django.db.models.deletion import ProtectedError
 from guide.models import Program
 
 class Command(BaseCommand):
@@ -62,6 +63,10 @@ class Command(BaseCommand):
                                 self.stdout.write(self.style.SUCCESS(f'Successfully deleted program with ID {program_id}'))
                             except Program.DoesNotExist:
                                 self.stdout.write(self.style.ERROR(f'Program with ID {program_id} does not exist'))
+                            except ProtectedError:
+                                program.is_removed = True
+                                program.save()
+                                self.stdout.write(self.style.WARNING(f'Cannot delete program with ID {program_id} because it is referenced by a protected foreign key'))
                             except Exception as e:
                                 self.stdout.write(self.style.ERROR(f'Failed to delete program with ID {program_id}: {e}'))
 

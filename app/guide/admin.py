@@ -64,14 +64,14 @@ class ProgramAdmin(admin.ModelAdmin):
     list_display = ('program_id', 'title', 'event_id', 'service_id', 'network_id',
                     'start_at', 'end_at_display', 'duration', 'is_airing_display', 'is_past_display')
     list_filter = ('service_id', 'network_id', 'is_free',
-                   IsAiringFilter, IsPastFilter, 'start_at')
+                   IsAiringFilter, IsPastFilter, 'start_at', 'is_removed')
     search_fields = ('title', 'description', 'program_id',
                      'event_id', 'service_id', 'network_id')
     readonly_fields = ('program_id', 'event_id', 'service_id', 'network_id', 'start_at', 'end_at_display', 'duration', 'is_free', 'extended_info',
-                       'title', 'description', 'pf_flag', 'is_airing_display', 'is_past_display', 'video_info', 'audio_infos', 'genres', 'related_items')
+                       'title', 'description', 'pf_flag', 'is_airing_display', 'is_past_display', 'video_info', 'audio_infos', 'genres', 'related_items', 'is_removed')
     fieldsets = (
         (None, {
-            'fields': ('program_id', 'event_id', 'service_id', 'network_id', 'start_at', 'end_at_display', 'duration', 'is_free', 'extended_info', 'title', 'description', 'pf_flag', 'is_airing_display', 'is_past_display')
+            'fields': ('program_id', 'event_id', 'service_id', 'network_id', 'start_at', 'end_at_display', 'duration', 'is_free', 'extended_info', 'title', 'description', 'pf_flag', 'is_airing_display', 'is_past_display', 'is_removed')
         }),
         ('関連情報', {
             'fields': ('video_info', 'audio_infos', 'genres', 'related_items')
