@@ -260,6 +260,9 @@ def record_program(recorded_id):
                 if current_time >= next_refresh_time:
                     program.refresh_from_db()
                     end_time = program.end_at + timedelta(seconds=5)
+
+                    if program.is_removed:
+                        break
                     next_refresh_time = current_time + refresh_interval
 
                 # 番組が終了しているかチェック
@@ -282,7 +285,8 @@ def record_program(recorded_id):
 
             if interrupted:
                 return f"Recording of program {program.title} interrupted and stopped due to shutdown signal."
-
+            if program.is_removed:
+                return f"Program {program.title} has been removed and recording has been stopped."
             return f"Recording of program {program.title} completed successfully."
 
     except Exception as e:
