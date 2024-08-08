@@ -6,11 +6,11 @@ from .models import Recorded, RecordRule
 
 
 class RecordRuleAdmin(admin.ModelAdmin):
-    list_display = ("keyword", "service_id", "is_enable")
+    list_display = ("keyword", "service_id", "is_enable", "recording_path")
     list_filter = ("is_enable", "service_id")
     search_fields = ("keyword",)
     ordering = ("-is_enable", "service_id")
-    list_editable = ("is_enable",)
+    list_editable = ("is_enable", "recording_path")
     actions = ["enable_selected", "disable_selected"]
 
     def enable_selected(self, request, queryset):

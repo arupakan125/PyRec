@@ -7,6 +7,7 @@ class RecordRule(models.Model):
     keyword = models.CharField(max_length=255, null=True, blank=True)
     service_id = models.IntegerField(null=True, blank=True)
     is_enable = models.BooleanField(default=True)
+    recording_path = models.CharField(max_length=255, blank=True)
 
 
 class Recorded(models.Model):

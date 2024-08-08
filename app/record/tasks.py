@@ -63,7 +63,7 @@ def generate_unique_filename(directory, base_name, extension, date):
     return django_path
 
 
-def create_recording_task(program_id):
+def create_recording_task(program_id, recording_path):
     try:
         program = Program.objects.get(id=program_id)
     except Program.DoesNotExist:
@@ -87,9 +87,11 @@ def create_recording_task(program_id):
         # print(f"Recording process for program {program.title} is already running.")
         return
 
+    recording_path = os.path.join(settings.RECORDED_PATH, recording_path)
+
     # 録画ファイルのパスを設定
     file_path = generate_unique_filename(
-        settings.RECORDED_PATH, program.title, "ts", program.start_at
+        recording_path, program.title, "ts", program.start_at
     )
 
     # 録画オブジェクトを作成
@@ -240,6 +242,12 @@ def record_program(recorded_id):
     except requests.exceptions.RequestException as e:
         return f"Failed to start recording of program {program.title}: {e}"
 
+    directory = os.path.dirname(file_path)
+
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+        print(f"Directory created: {directory}")
+
     try:
         with open(file_path, "wb") as file:
             update_interval = timedelta(seconds=1)
@@ -335,7 +343,7 @@ def start_recording_based_on_rules():
                 or Program.objects.filter(id=program.id).filter(conditions).exists()
             ):
                 # print(f"Recording program {program.id} based on rule {rule.id}")
-                create_recording_task(program.id)
+                create_recording_task(program.id, rule.recording_path)
                 break  # マッチするルールが見つかったら次のプログラムへ
 
     return "Recording tasks have been started based on the rules."
