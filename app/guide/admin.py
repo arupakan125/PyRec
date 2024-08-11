@@ -112,6 +112,7 @@ class ProgramAdmin(admin.ModelAdmin):
         "genres",
         "related_items",
         "is_removed",
+        "is_mono_audio_display",
     )
     fieldsets = (
         (
@@ -133,6 +134,7 @@ class ProgramAdmin(admin.ModelAdmin):
                     "is_airing_display",
                     "is_past_display",
                     "is_removed",
+                    "is_mono_audio_display",
                 )
             },
         ),
@@ -161,6 +163,12 @@ class ProgramAdmin(admin.ModelAdmin):
 
     is_past_display.boolean = True
     is_past_display.short_description = "Is Past"
+
+    def is_mono_audio_display(self, obj):
+        return obj.is_mono_audio
+
+    is_mono_audio_display.boolean = True
+    is_mono_audio_display.short_description = "Is Mono Audio"
 
     def end_at_display(self, obj):
         local_end_at = timezone.localtime(obj.end_at)

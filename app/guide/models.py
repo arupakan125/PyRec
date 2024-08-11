@@ -244,5 +244,12 @@ class Program(models.Model):
         now = datetime.now(pytz.timezone("Asia/Tokyo"))
         return now >= self.end_at
 
+    @property
+    def is_mono_audio(self):
+        for item in self.audio_infos:
+            if item.get("isMain") and item.get("componentType") == 0b00010:
+                return True
+        return False
+
     def __str__(self):
         return self.title

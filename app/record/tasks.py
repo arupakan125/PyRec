@@ -308,7 +308,7 @@ def encode():
                 print(f"Directory created: {directory}")
             task.started_at = timezone.now()
             task.save(update_fields=["is_executed", "started_at"])
-            func(input_file, output_file)
+            func(input_file, output_file, task.recorded.program.is_mono_audio)
             task.ended_at = timezone.now()
             task.save(update_fields=["is_executed", "ended_at"])
             break

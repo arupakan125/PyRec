@@ -2,7 +2,7 @@ import shlex
 import subprocess
 
 
-def encode(input_file, output_file):
+def encode(input_file, output_file, is_mono_audio):
     # ffmpegコマンドを作成
     command = [
         "cat",
@@ -25,6 +25,10 @@ def encode(input_file, output_file):
         "30M",
         "-fflags",
         "+discardcorrupt",
+    ]
+    if is_mono_audio:
+        command += ["-dual_mono_mode", "main"]
+    command += [
         "-i",
         "-",  # 入力ファイル
         "-c:v",
