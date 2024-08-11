@@ -243,7 +243,11 @@ def start_recording_based_on_rules():
         calculated_end_at=ExpressionWrapper(
             F("start_at") + F("duration"), output_field=DateTimeField()
         )
-    ).filter(start_at__lte=now + timedelta(seconds=5), calculated_end_at__gt=now)
+    ).filter(
+        start_at__lte=now + timedelta(seconds=5),
+        calculated_end_at__gt=now,
+        is_removed=False,
+    )
 
     for program in upcoming_programs:
         rules = get_rules_match_program(program)
