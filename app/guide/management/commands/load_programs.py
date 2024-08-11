@@ -32,7 +32,8 @@ class Command(BaseCommand):
                         pass
                     else:
                         # self.stdout.write(self.style.SUCCESS(f'Successfully updated program {program.title}'))
-                        pass
+                        program.is_removed = False
+                        program.save()
                 else:
                     # self.stdout.write(self.style.WARNING('Program was ignored due to related items mismatch'))
                     pass
