@@ -121,6 +121,7 @@ def record_program(recorded_id):
 
     # SIGINTのシグナルハンドラーを設定
     signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
     try:
         recorded = Recorded.objects.get(id=recorded_id)
@@ -262,10 +263,10 @@ def start_recording_based_on_rules():
 @shared_task(base=QueueOnce, once={"graceful": True})
 def encode():
     for task in EncodeTask.objects.filter(is_executed=False):
-        if task.recorded.is_recording:
+        if not task.recorded.ended_at:
             continue
 
-        encoding_path = os.path.join(settings.RECORDED_PATH, task.encoding_path)
+        encoding_path = os.path.join(settings.ENCODED_PATH, task.encoding_path)
 
         # 録画ファイルのパスを設定
         file_path = generate_unique_filename(
@@ -276,15 +277,17 @@ def encode():
         )
 
         task.file = file_path
-        task.save(update_fields=["file"])
+        task.started_at = timezone.now()
+        task.is_executed = True
+        task.save(update_fields=["file", "is_executed", "started_at"])
 
         function_name = "encode"
 
         encorder_path = os.path.join("record/encode/", task.encoder_path)
 
         # 関数を呼び出す
-        input_file = os.path.join(settings.MEDIA_ROOT, task.recorded.file.path)
-        output_file = os.path.join(settings.ENCODED_ROOT, task.file.path)
+        input_file = task.recorded.file.path
+        output_file = task.file.path
         try:
             # 動的にモジュールをインポート
             module_name = os.path.splitext(os.path.basename(file_path))[0]
@@ -299,7 +302,6 @@ def encode():
             if not os.path.exists(directory):
                 os.makedirs(directory)
                 print(f"Directory created: {directory}")
-            task.is_executed = True
             task.started_at = timezone.now()
             task.save(update_fields=["is_executed", "started_at"])
             func(input_file, output_file)

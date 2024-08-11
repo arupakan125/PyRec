@@ -3,11 +3,16 @@ services:
     build: .
     restart: always
     ports:
-      - 3000:8000
+      - 3001:8000
     environment:
       - TZ=Asia/Tokyo
     volumes:
       - ./media:/app/media
+    devices:
+        - /dev/dri/renderD128:/dev/dri/renderD128
+    depends_on:
+      - db
+      - redis
   db:
     image: mariadb:latest
     restart: always
@@ -26,15 +31,25 @@ services:
       TZ: 'Asia/Tokyo'
   celery-worker:
     build: .
-    command: celery -A pyrec worker -l info
+    command: bash -c "celery -A pyrec worker -l info"
     restart: always
     environment:
       TZ: 'Asia/Tokyo'
     volumes:
       - ./media:/app/media
+      - ./encode-scripts/:/app/record/encode/
+    devices:
+        - /dev/dri/renderD128:/dev/dri/renderD128
+    depends_on:
+      - db
+      - redis
+    init : true
   celery-beat:
     build: .
     command: celery -A pyrec beat -l info
     restart: always
     environment:
       TZ: 'Asia/Tokyo'
+    depends_on:
+      - db
+      - redis
